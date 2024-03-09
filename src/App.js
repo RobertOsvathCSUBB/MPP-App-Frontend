@@ -1,25 +1,49 @@
-import logo from './logo.svg';
+import React, { useState } from 'react';
 import './App.css';
+import { faker } from '@faker-js/faker';
+import { BrowserRouter, Routes, Route, Link, useParams } from 'react-router-dom';
+import User from './User';
 
-function App() {
+export default function App() {
+  const [users, setUsers] = useState(() => {
+    return Array.from({ length: 10 }, () => {
+      return {
+        id: faker.string.uuid(),
+        username: faker.internet.userName(),
+        email: faker.internet.email(),
+        password: faker.internet.password(),
+        avatar: faker.image.avatar(),
+        birthdate: faker.date.birthdate(),
+        registeredAt: faker.date.past()
+      };
+    });
+  });
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <div>
+              <h1>Users</h1>
+              <ul>
+                {users.map((user) => (
+                  <li key={user.id}>
+                    <Link to={`/user/${user.id}`}>{user.username}</Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          }
+        />
+        <Route
+          path="/user/:id"
+          element={
+            <User users={users}/>
+          }
+        />
+      </Routes>
+    </BrowserRouter>
   );
 }
-
-export default App;
