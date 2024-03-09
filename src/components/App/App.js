@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import './App.css';
 import { faker } from '@faker-js/faker';
 import { BrowserRouter, Routes, Route, Link, useParams } from 'react-router-dom';
-import User from './User';
+import User from '../../User';
 
 export default function App() {
   const [users, setUsers] = useState(() => {
