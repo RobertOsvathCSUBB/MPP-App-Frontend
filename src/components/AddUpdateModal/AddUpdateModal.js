@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 
-const AddUpdateModal = ({ isOpen, onClose, userState }) => {
+const AddUpdateModal = ({ isOpen, onSubmit, userState, mode, onClose }) => {
     const [formData, setFormData] = useState({
         id: userState.id,
         username: '',
@@ -12,9 +12,6 @@ const AddUpdateModal = ({ isOpen, onClose, userState }) => {
         registeredAt: userState.registeredAt
     });
 
-    console.log('userState: ', userState);
-    console.log('formData: ', formData);
-
     const handleChange = (e) => {
         const fieldName = e.target.name;
         const value = e.target.value;
@@ -23,14 +20,18 @@ const AddUpdateModal = ({ isOpen, onClose, userState }) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log('Form data: ', formData);
-        onClose(formData);
+        onSubmit(formData);
     };
 
     return (
         <Modal show={isOpen}>
             <Modal.Header>
                 <Modal.Title>Update user</Modal.Title>
+                <Button variant='outline-dark' 
+                        style={{ marginLeft: 'auto', justifyContent: 'center' }} 
+                        onClick={() => {onClose();}}>
+                x
+                </Button>
             </Modal.Header>
             <Modal.Body>
                 <Form onSubmit={handleSubmit}>
@@ -89,7 +90,7 @@ const AddUpdateModal = ({ isOpen, onClose, userState }) => {
                             onChange={handleChange}
                         />
                     </Form.Group> */}
-                    <Button variant='primary' type='submit' style={{ marginTop: '10px'}}>Update</Button>
+                    <Button variant='primary' type='submit' style={{ marginTop: '10px'}}>{ mode }</Button>
                 </Form>
             </Modal.Body>
         </Modal>

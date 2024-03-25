@@ -4,6 +4,23 @@ h1 {
 
 main {
     display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-evenly;
+}
+
+#center-container {
+    display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
+}
+
+footer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    padding-top: 20px;
+    font-size: large;
 }
