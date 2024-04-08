@@ -10,3 +10,11 @@ h1 {
   justify-content: space-evenly;
   margin-bottom: 20px
 }
+
+#page-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
+  margin-top: 20px;
+}

@@ -26,11 +26,11 @@ const AddUpdateModal = ({ isOpen, onSubmit, userState, mode, onClose }) => {
     return (
         <Modal show={isOpen}>
             <Modal.Header>
-                <Modal.Title>Update user</Modal.Title>
+                <Modal.Title>{mode} user</Modal.Title>
                 <Button variant='outline-dark' 
                         style={{ marginLeft: 'auto', justifyContent: 'center' }} 
                         onClick={() => {onClose();}}>
-                x
+                    X
                 </Button>
             </Modal.Header>
             <Modal.Body>
