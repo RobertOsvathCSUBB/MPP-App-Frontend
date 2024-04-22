@@ -33,6 +33,8 @@ const HomePage = () => {
     setUsers([...users, newUser]);
     try {
       const res = await api.post('/', newUser);
+      const newID = res.data.id;
+      newUser.id = newID;
     }
     catch (err) {
       setUsers(users.filter((user) => user.id !== newUser.id));
@@ -110,7 +112,7 @@ const HomePage = () => {
         </Row>
       </Container>
       <AddUpdateModal isOpen={showModal} onSubmit={handleAdd} userState={{
-        id: faker.string.uuid(),
+        id: '',
         username: '',
         email: '',
         password: '',

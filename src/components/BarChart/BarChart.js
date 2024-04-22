@@ -2,6 +2,7 @@ import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS } from 'chart.js/auto';
 import React, { useState, useContext, useEffect } from 'react';
 import { UserContext } from '../../context/UserContext';
+import axios from 'axios';
 
 const BarChart = () => {
     const [users, setUsers] = useContext(UserContext);
@@ -10,25 +11,18 @@ const BarChart = () => {
     const [chartData, setChartData] = useState({});
     const [isLoading, setIsLoading] = useState(true);
 
-    const getUniqueYears = () => {
-        const years = users.map((user) => new Date(user.registeredAt).getFullYear());
-        return [...new Set(years)].sort();
-    };
-
-    const getNumberOfUsersPerYear = () => {
-        const years = getUniqueYears();
-        const usersPerYear = years.map((year) => {
-            return users.filter((user) => new Date(user.registeredAt).getFullYear() === year).length;
-        });
-        return usersPerYear;
-    };
-
     useEffect(() => {
-        console.log(users);
-        const x = getUniqueYears();
-        const y = getNumberOfUsersPerYear();
-        setUniqueYears(x);
-        setUsersPerYear(y);
+        const fetchData = async () => {
+            try {
+                const res = await axios.get('https://localhost:7182/api/User/getUsersPerYear');
+                const data = res.data;
+                setUniqueYears(data.map((item) => item.year));
+                setUsersPerYear(data.map((item) => item.users));
+            } catch (err) {
+                console.log('Error fetching data: ', err);
+            }
+        };
+        fetchData();
     }, []);
 
     useEffect(() => {

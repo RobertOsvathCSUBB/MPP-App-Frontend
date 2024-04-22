@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import HomePage from './HomePage/HomePage';
-import User from './User/User';
-import BarChart from './BarChart/BarChart';
-import { DataProvider, UserContext } from '../context/UserContext';
+import HomePage from './components/HomePage/HomePage';
+import User from './components/User/User';
+import BarChart from './components/BarChart/BarChart';
+import { DataProvider, UserContext } from './context/UserContext';
 
 const App = () => {
     return (
