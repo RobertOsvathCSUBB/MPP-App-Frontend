@@ -36,7 +36,6 @@ const User = () => {
 
     const handleUpdate = async (updatedUser) => {
         const prevState = state;
-        console.log('updatedUser: ', updatedUser);
         setUsers(users.map((user) => user.id === id ? updatedUser : user));
         setState(updatedUser);
         try {
@@ -51,35 +50,12 @@ const User = () => {
         setShowModal(false);
     }
 
-    // const handleGoToPrevious = () => {
-    //     if (index === 0) {
-    //         navigate(`/user/${users[users.length - 1].id}`);
-            
-    //     } else {
-    //         navigate(`/user/${users[index - 1].id}`);
-            
-    //     }
-    // };
-
-    // const handleGoToNext = () => {
-    //     if (index === users.length - 1) {
-    //         navigate(`/user/${users[0].id}`);
-            
-    //     } else {
-    //         navigate(`/user/${users[index + 1].id}`);
-            
-    //     }
-    // };
-
     return (
         <>
         <Button variant="primary" onClick={() => navigate('/')}>Home</Button>
         <h1>{state.username}</h1>
         <main>
             <div id="main-container">
-                {/* <div>
-                    <Button variant="primary" onClick={handleGoToPrevious}>&lt;</Button>
-                </div> */}
                 <div id="center-container">
                     <p>ID: {state.id}</p>
                     <img src={state.avatar} alt={state.username} />
@@ -87,11 +63,9 @@ const User = () => {
                     <p>Birth date: {state.birthdate}</p>
                     <p>Registered at: {state.registeredAt}</p>
                     <Button variant="primary" onClick={openModal}>Update</Button>
+                    <Button variant="primary" onClick={() => navigate(`/user/${id}/loginActivities`)}>See login activities</Button>
                     <AddUpdateModal isOpen={showModal} onSubmit={handleUpdate} userState={users[index]} mode="Update" onClose={closeModal}/>
                 </div>
-                {/* <div>
-                    <Button variant="primary" onClick={handleGoToNext}>&gt;</Button>
-                </div> */}
             </div>
         </main>
         <footer>

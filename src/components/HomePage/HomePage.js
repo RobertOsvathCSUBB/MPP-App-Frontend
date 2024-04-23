@@ -65,12 +65,15 @@ const HomePage = () => {
   }
 
   const sortUsers = () => {
-    setUsers((prevUsers) => {
-      return prevUsers.sort((a, b) => {
-        return a.username.localeCompare(b.username);
-      });
-    });
-    navigate('/');
+    const fetchData = async () => {
+      try {
+        const res = await api.get('/sorted');
+        setUsers(res.data);
+      } catch (err) {
+        console.log('Error fetching data: ', err);
+      }
+    };
+    fetchData();
   };
 
   const closeModal = () => {
@@ -104,6 +107,11 @@ const HomePage = () => {
             )
           }
         </Row>
+        <Row id="page-index">
+          <Col>
+            <p>Page {page + 1} of {Math.ceil(users.length / 4)}</p>
+          </Col>
+        </Row>
         <Row id="page-buttons">
           <Col>
             <Button variant="primary" onClick={() => setPage((prevPage) => prevPage - 1)} disabled={page === 0}>&lt;</Button>
@@ -118,7 +126,8 @@ const HomePage = () => {
         password: '',
         avatar: faker.image.avatar(),
         birthdate: faker.date.birthdate(),
-        registeredAt: faker.date.past()
+        registeredAt: faker.date.past(),
+        loginActivities: []
       }} mode="Add" onClose={closeModal}/>
     </div>   
 

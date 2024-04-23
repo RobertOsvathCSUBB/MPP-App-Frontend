@@ -19,19 +19,19 @@ const DataProvider = ({ children }) => {
         fetchData();
     }, []);
 
-    useEffect(() => {
-        const connection = new signalR.HubConnectionBuilder().withUrl('https://localhost:7182/hub').build();
-        connection.start()
-            .then(() => {
-                console.log('Connected to hub!');
-                connection.on('ReceiveNewUser', (data) => {
-                    const newUser = JSON.parse(data);
-                    setUsers(prevUsers => [...prevUsers, newUser]);
-                });
-            })
-            .catch(err => console.log('Error connecting: ', err));
-        return () => connection.stop();
-    }, []);
+    // useEffect(() => {
+    //     const connection = new signalR.HubConnectionBuilder().withUrl('https://localhost:7182/hub').build();
+    //     connection.start()
+    //         .then(() => {
+    //             console.log('Connected to hub!');
+    //             connection.on('ReceiveNewUser', (data) => {
+    //                 const newUser = JSON.parse(data);
+    //                 setUsers(prevUsers => [...prevUsers, newUser]);
+    //             });
+    //         })
+    //         .catch(err => console.log('Error connecting: ', err));
+    //     return () => connection.stop();
+    // }, []);
 
     const [healthStatus, setHealthStatus] = useState('Unhealthy');
 

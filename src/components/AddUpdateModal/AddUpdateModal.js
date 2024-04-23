@@ -9,7 +9,8 @@ const AddUpdateModal = ({ isOpen, onSubmit, userState, mode, onClose }) => {
         password: '',
         avatar: userState.avatar,
         birthdate: userState.birthdate,
-        registeredAt: userState.registeredAt
+        registeredAt: userState.registeredAt,
+        loginActivities: userState.loginActivities
     });
 
     const handleChange = (e) => {
