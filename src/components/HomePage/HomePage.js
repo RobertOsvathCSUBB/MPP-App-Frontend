@@ -3,9 +3,9 @@ import './HomePage.css';
 import { useNavigate } from 'react-router-dom';
 import AddUpdateModal from '../AddUpdateModal/AddUpdateModal';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Card, Button, Container, Col, Row } from 'react-bootstrap';
+import { Card, Button, Container, Col, Row, FormControl } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { faker } from '@faker-js/faker';
+import { faker, he } from '@faker-js/faker';
 import axios from 'axios';
 import { UserContext } from '../../context/UserContext';
 
@@ -14,14 +14,15 @@ const api = axios.create({
 });
 
 const HomePage = () => {
-  const [users, setUsers] = useContext(UserContext);
-  const [slicedUsers, setSlicedUsers] = useState([]);
+  const value = useContext(UserContext);
+  const {usersContext, currentPageContext, totalPages, healthStatusContext,
+     usersAddedOfflineContext, usersDeletedOfflineContext, usersUpdatedOfflineContext} = useContext(UserContext);
+  const [users, setUsers] = usersContext;
+  const [currentPage, setCurrentPage] = currentPageContext;
+  const [healthStatus, setHealthStatus] = healthStatusContext;
+  const [usersAddedOffline, setUsersAddedOffline] = usersAddedOfflineContext;
+  const [usersDeletedOffline, setUsersDeletedOffline] = usersDeletedOfflineContext;
   const [showModal, setShowModal] = useState(false);
-  const [page, setPage] = useState(0);
-
-  useEffect(() => {
-    setSlicedUsers(users.slice(page * 4, page * 4 + 4));
-  }, [users, page]);
 
   const navigate = useNavigate();
 
@@ -37,13 +38,7 @@ const HomePage = () => {
       newUser.id = newID;
     }
     catch (err) {
-      setUsers(users.filter((user) => user.id !== newUser.id));
-      if (err.response) {
-        console.log('Error adding user: ', err.response.data);
-      } else {
-        console.log('Error adding user: ', err.message);
-      }
-      window.alert('Error adding user');
+      setUsersAddedOffline(prev => [...prev, newUser]);
     }
     setShowModal(false);
   };
@@ -51,16 +46,10 @@ const HomePage = () => {
   const handleDelete = async (deletedUser) => {
     setUsers(users.filter((user) => user.id !== deletedUser.id));
     try {
-      const res = await api.delete(`/${deletedUser.id}`);
+      await api.delete(`/${deletedUser.id}`);
     }
     catch (err) {
-      setUsers([...users, deletedUser]);
-      if (err.response) {
-        console.log('Error deleting user: ', err.response.data);
-      } else {
-        console.log('Error deleting user: ', err.message);
-      }
-      window.alert('Error deleting user');
+      setUsersDeletedOffline(prev => [...prev, deletedUser]);
     }
   }
 
@@ -80,9 +69,38 @@ const HomePage = () => {
     setShowModal(false);
   };
 
+  const [pageInput, setPageInput] = useState(currentPage.value + 1);
+
+  const forwardPage = () => {
+    setCurrentPage(prevPage => ({...prevPage, value: prevPage.value + 1, lastOperation: 'forward'}));
+    setPageInput(prevPage => prevPage + 1);
+  };
+
+  const backwardPage = () => {
+    setCurrentPage(prevPage => ({...prevPage, value: prevPage.value - 1, lastOperation: 'backward'}));
+    setPageInput(prevPage => prevPage - 1);
+  };
+
+  const handlePageInputChanged = (e) => {
+    setPageInput(e.target.value);
+  };
+
+  const setCustomPage = (e) => {
+    if (e.code === 'Enter') {
+      const value = e.target.value - 1;
+      if (value >= 0 && value < totalPages) {
+        setCurrentPage(prevPage => ({...prevPage, value: value, lastOperation: 'custom'}));
+      }
+      else {
+        window.alert('Invalid page');
+      }
+    }
+  };
+
   return (
     
     <div>
+      {healthStatus === 'Unhealthy' && <div className="alert alert-danger" role="alert">Server is down</div>}
       <h1>Users</h1>
       <div id="add-button">
         <Button variant='primary' onClick={handleShowModal}>Add</Button>
@@ -91,7 +109,7 @@ const HomePage = () => {
       </div>
       <Container fluid style={{alignItems: 'center'}}>
         <Row>
-          {slicedUsers.map((user) => (
+          {users.map((user) => (
               <Col>
                 <Card style={{ width: '18rem', marginBottom: '20px' }}>
                   <Card.Img variant="top" src={user.avatar} />
@@ -109,13 +127,17 @@ const HomePage = () => {
         </Row>
         <Row id="page-index">
           <Col>
-            <p>Page {page + 1} of {Math.ceil(users.length / 4)}</p>
+            <div style={{ display: 'flex', alignItems: 'center', width: 'auto'}}>
+              <p>Page 
+                <FormControl style={{width: '75px'}} type='text' value={pageInput} onChange={handlePageInputChanged} onKeyDownCapture={setCustomPage}/>
+              of {totalPages}</p>
+            </div>
           </Col>
         </Row>
         <Row id="page-buttons">
           <Col>
-            <Button variant="primary" onClick={() => setPage((prevPage) => prevPage - 1)} disabled={page === 0}>&lt;</Button>
-            <Button variant="primary" onClick={() => setPage((prevPage) => prevPage + 1)} disabled={(users.length % 4 === 0 && page === (users.length / 4) - 1 )||  page === Math.floor(users.length / 4)}>&gt;</Button>
+            <Button variant="primary" onClick={backwardPage} disabled={currentPage.value === 0}>&lt;</Button>
+            <Button variant="primary" onClick={forwardPage} disabled={currentPage.value === totalPages - 1}>&gt;</Button>
           </Col>
         </Row>
       </Container>

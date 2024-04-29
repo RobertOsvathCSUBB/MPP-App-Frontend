@@ -7,22 +7,14 @@ import axios from "axios";
 import { UserContext } from "../../context/UserContext";
 
 const User = () => {
-    const [users, setUsers] = useContext(UserContext);
+    const {usersContext, healthStatusContext, usersAddedOfflineContext, usersDeletedOfflineContext, usersUpdatedOfflineContext} = useContext(UserContext);
+    const [users, setUsers] = usersContext;
+    const [healthStatus, setHealthStatus] = healthStatusContext;
+    const [usersUpdatedOffline, setUsersUpdatedOffline] = usersUpdatedOfflineContext;
     const navigate = useNavigate();
     const { id } = useParams();
     const index = users.findIndex((user) => user.id === id);
-    const [state, setState] = useState({});
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const res = await axios.get(`https://localhost:7182/api/User/${id}`);
-                setState(res.data);
-            } catch (err) {
-                console.log('Error fetching data: ', err);
-            }
-        };
-        fetchData();
-    }, []);
+    const [state, setState] = useState(users[index]);
 
     const [showModal, setShowModal] = useState(false);
 
@@ -40,18 +32,22 @@ const User = () => {
         setState(updatedUser);
         try {
             const res = await axios.put(`https://localhost:7182/api/User/${id}`, updatedUser);
+            if (res.status === 400 || res.status === 404) {
+                window.alert('Error updating user');
+                console.log('Error updating user: ', res.data);
+                setUsers(users.map((user) => user.id === id ? prevState : user));
+                setState(prevState);
+            }
         }
         catch (err) {
-            console.log('Error updating user: ', err);
-            window.alert('Error updating user');
-            setUsers(users.map((user) => user.id === id ? prevState : user));
-            setState(prevState);
+            setUsersUpdatedOffline(prev => [...prev, updatedUser]);
         }
         setShowModal(false);
     }
 
     return (
         <>
+        {healthStatus === 'Unhealthy' && <div className="alert alert-danger" role="alert">Server is down</div>}
         <Button variant="primary" onClick={() => navigate('/')}>Home</Button>
         <h1>{state.username}</h1>
         <main>
@@ -63,7 +59,7 @@ const User = () => {
                     <p>Birth date: {state.birthdate}</p>
                     <p>Registered at: {state.registeredAt}</p>
                     <Button variant="primary" onClick={openModal}>Update</Button>
-                    <Button variant="primary" onClick={() => navigate(`/user/${id}/loginActivities`)}>See login activities</Button>
+                    <Button variant="primary" style={{marginTop: 20}} onClick={() => navigate(`/user/${id}/loginActivities`)}>See login activities</Button>
                     <AddUpdateModal isOpen={showModal} onSubmit={handleUpdate} userState={users[index]} mode="Update" onClose={closeModal}/>
                 </div>
             </div>

@@ -4,17 +4,13 @@ import { UserContext } from "../../context/UserContext";
 import { Button } from 'react-bootstrap';
 
 const LoginActivities = () => {
-    const [users, setUsers] = useContext(UserContext);
+    const {usersContext, healthStatusContext, usersAddedOfflineContext, usersDeletedOfflineContext, usersUpdatedOfflineContext} = useContext(UserContext);
+    const [users, setUsers] = usersContext;
     const id = useParams().id;
     const index = users.findIndex((user) => user.id === id);
     const [activities, setActivities] = useState([]);
 
     const navigate = useNavigate();
-
-    console.log(users);
-    console.log(id);
-    console.log(index);
-    console.log(users.find((user) => user.id === id));
 
     useEffect(() => {
         setActivities(users.find((user) => user.id === id).loginActivities);

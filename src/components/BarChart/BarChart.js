@@ -5,7 +5,6 @@ import { UserContext } from '../../context/UserContext';
 import axios from 'axios';
 
 const BarChart = () => {
-    const [users, setUsers] = useContext(UserContext);
     const [uniqueYears, setUniqueYears] = useState([]);
     const [usersPerYear, setUsersPerYear] = useState([]);
     const [chartData, setChartData] = useState({});
