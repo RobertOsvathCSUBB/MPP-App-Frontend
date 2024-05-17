@@ -1,16 +1,26 @@
 import { createContext, useEffect, useState } from "react";
 import axios from "axios";
 import * as signalR from "@microsoft/signalr";
+import { sign } from "chart.js/helpers";
 
 const PAGESIZE = 4;
 
 const api = axios.create({
-    baseURL: 'https://localhost:7182/api/User'
+    baseURL: 'https://localhost:7182/api/User',
 });
 
 const UserContext = createContext();
 
 const DataProvider = ({ children }) => {
+    const [adminAccessToken, setAdminAccessToken] = useState('');
+    const [signedIn, setSignedIn] = useState(() => {
+        const storedToken = localStorage.getItem('adminAccessToken');
+        if (storedToken) {
+            setAdminAccessToken(storedToken);
+            return true;
+        }
+        return false;
+    });
     const [users, setUsers] = useState([]);
     const [previousUsers, setPreviousUsers] = useState([]);
     const [nextUsers, setNextUsers] = useState([]);
@@ -22,7 +32,11 @@ const DataProvider = ({ children }) => {
 
     const fetchData = async (page) => {
         try {
-            const res = await api.get(`/pages?page=${page}&pageSize=${PAGESIZE}`);
+            const res = await api.get(`/pages?page=${page}&pageSize=${PAGESIZE}`, {
+                headers: {
+                    'Authorization': `Bearer ${adminAccessToken}`
+                }
+            });
             return res.data;
         } catch (err) {
             console.log('Error fetching data: ', err);
@@ -35,11 +49,14 @@ const DataProvider = ({ children }) => {
             setUsers(currentUsersAux);
             const nextUsersAux = await fetchData(currentPage.value + 1);
             setNextUsers(nextUsersAux);
-            const totalUsers = (await api.get('/totalUsersCount')).data;
+            const totalUsers = (await api.get('/totalUsersCount', {headers: {'Authorization': `Bearer ${adminAccessToken}`}})).data;
             setTotalPages(Math.ceil(totalUsers / PAGESIZE));
         };
-        onMount();
-    }, []);
+        console.log('Mounting, ', signedIn)
+        if (signedIn) {
+            onMount();
+        }
+    }, [signedIn]);
 
     useEffect(() => {
         const forward = async () => {
@@ -94,7 +111,6 @@ const DataProvider = ({ children }) => {
                     await custom();
                     break;
                 default:
-                    console.log('u messed up');
                     break;
             }
         };
@@ -122,18 +138,15 @@ const DataProvider = ({ children }) => {
     const [triggerSync, setTriggerSync] = useState(false);
 
     const postUsersAddedOffline = async () => {
-        for (const user of usersAddedOffline) {
-            try {
-                const res = await api.post('/', user);
-                const newID = res.data.id;
-                user.id = newID;
-            } catch (err) {
-                if (err.response) {
-                    console.log('Error adding user: ', err.response.data);
-                } else {
-                    console.log('Error adding user: ', err.message);
+        try {
+            const res = await api.post('/addRange', usersAddedOffline, {
+                headers: {
+                    'Authorization': `Bearer ${adminAccessToken}`
                 }
-            }
+            });
+        }
+        catch (err) {
+            console.log('Error adding users offline: ', err);
         }
         setUsersAddedOffline([]);
     };
@@ -145,7 +158,11 @@ const DataProvider = ({ children }) => {
                 continue;
             }
             try {
-                await api.delete(`/${user.id}`);
+                await api.delete(`/${user.id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${adminAccessToken}`
+                    }
+                });
             } catch (err) {
                 if (err.response) {
                     console.log('Error deleting user: ', err.response.data);
@@ -160,7 +177,11 @@ const DataProvider = ({ children }) => {
     const putUsersUpdatedOffline = async () => {
         for (const user of usersUpdatedOffline) {
             try {
-                await api.put(`/${user.id}`, user);
+                await api.put(`/${user.id}`, user, {
+                    headers: {
+                        'Authorization': `Bearer ${adminAccessToken}`
+                    }
+                });
             } catch (err) {
                 if (err.response) {
                     console.log('Error updating user: ', err.response.data);
@@ -179,7 +200,7 @@ const DataProvider = ({ children }) => {
             await deleteUsersDeletedOffline();
             await putUsersUpdatedOffline();
         };
-        if (triggerSync) {
+        if (triggerSync && signedIn) {
             syncWithServer();
         }
     }, [triggerSync]);
@@ -196,7 +217,7 @@ const DataProvider = ({ children }) => {
             }
         };
         checkHealth();
-        const interval = setInterval(checkHealth, 10000);
+        const interval = setInterval(checkHealth, 5000);
         return () => clearInterval(interval);
     }, []);
 
@@ -204,11 +225,13 @@ const DataProvider = ({ children }) => {
         <UserContext.Provider value={{
             usersContext: [users, setUsers],
             currentPageContext: [currentPage, setCurrentPage],
-            totalPages: totalPages,
+            totalPagesContext: [totalPages, setTotalPages],
             healthStatusContext: [healthStatus, setHealthStatus],
             usersAddedOfflineContext: [usersAddedOffline, setUsersAddedOffline],
             usersDeletedOfflineContext: [usersDeletedOffline, setUsersDeletedOffline],
-            usersUpdatedOfflineContext: [usersUpdatedOffline, setUsersUpdatedOffline]
+            usersUpdatedOfflineContext: [usersUpdatedOffline, setUsersUpdatedOffline],
+            signedInContext: [signedIn, setSignedIn],
+            adminAccessTokenContext: [adminAccessToken, setAdminAccessToken],
         }}>
             {children}
         </UserContext.Provider>

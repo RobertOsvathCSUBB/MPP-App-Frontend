@@ -5,6 +5,8 @@ import { UserContext } from '../../context/UserContext';
 import axios from 'axios';
 
 const BarChart = () => {
+    const {adminAccessTokenContext} = useContext(UserContext);
+    const [adminAccessToken, setAdminAccessToken] = adminAccessTokenContext;
     const [uniqueYears, setUniqueYears] = useState([]);
     const [usersPerYear, setUsersPerYear] = useState([]);
     const [chartData, setChartData] = useState({});
@@ -13,7 +15,11 @@ const BarChart = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const res = await axios.get('https://localhost:7182/api/User/getUsersPerYear');
+                const res = await axios.get('https://localhost:7182/api/User/getUsersPerYear', {
+                    headers: {
+                        'Authorization': 'Bearer ' + adminAccessToken,
+                    }
+                });
                 const data = res.data;
                 setUniqueYears(data.map((item) => item.year));
                 setUsersPerYear(data.map((item) => item.users));

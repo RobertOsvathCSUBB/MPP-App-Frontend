@@ -5,18 +5,37 @@ import './User.css';
 import AddUpdateModal from "../AddUpdateModal/AddUpdateModal";
 import axios from "axios";
 import { UserContext } from "../../context/UserContext";
+import LoginActivities from "../LoginActivities/LoginActivities";
 
 const User = () => {
-    const {usersContext, healthStatusContext, usersAddedOfflineContext, usersDeletedOfflineContext, usersUpdatedOfflineContext} = useContext(UserContext);
+    const {usersContext, healthStatusContext, usersUpdatedOfflineContext, adminAccessTokenContext} = useContext(UserContext);
     const [users, setUsers] = usersContext;
     const [healthStatus, setHealthStatus] = healthStatusContext;
     const [usersUpdatedOffline, setUsersUpdatedOffline] = usersUpdatedOfflineContext;
+    const [adminAccessToken, setAdminAccessToken] = adminAccessTokenContext;
     const navigate = useNavigate();
     const { id } = useParams();
-    const index = users.findIndex((user) => user.id === id);
-    const [state, setState] = useState(users[index]);
+    const [state, setState] = useState(users.find((user) => user.id === id));
 
     const [showModal, setShowModal] = useState(false);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const res = await axios.get(`https://localhost:7182/api/User/${id}`, {
+                    headers: {
+                        'Authorization': 'Bearer ' + adminAccessToken,
+                    }
+                });
+                setState(res.data);
+            }
+            catch (err) {
+                setHealthStatus('Unhealthy');
+                window.alert('Error fetching user');
+            }
+        };
+        fetchData();
+    }, []);
 
     const openModal = () => {
         setShowModal(true);
@@ -48,7 +67,7 @@ const User = () => {
     return (
         <>
         {healthStatus === 'Unhealthy' && <div className="alert alert-danger" role="alert">Server is down</div>}
-        <Button variant="primary" onClick={() => navigate('/')}>Home</Button>
+        <Button variant="primary" onClick={() => navigate('/home')}>Home</Button>
         <h1>{state.username}</h1>
         <main>
             <div id="main-container">
@@ -60,13 +79,10 @@ const User = () => {
                     <p>Registered at: {state.registeredAt}</p>
                     <Button variant="primary" onClick={openModal}>Update</Button>
                     <Button variant="primary" style={{marginTop: 20}} onClick={() => navigate(`/user/${id}/loginActivities`)}>See login activities</Button>
-                    <AddUpdateModal isOpen={showModal} onSubmit={handleUpdate} userState={users[index]} mode="Update" onClose={closeModal}/>
+                    <AddUpdateModal isOpen={showModal} onSubmit={handleUpdate} userState={users.find((user) => user.id === id)} mode="Update" onClose={closeModal}/>
                 </div>
             </div>
         </main>
-        <footer>
-            {index + 1}
-        </footer>
         </>
     );
 }

@@ -5,7 +5,7 @@ import AddUpdateModal from '../AddUpdateModal/AddUpdateModal';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Card, Button, Container, Col, Row, FormControl } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { faker, he } from '@faker-js/faker';
+import { faker} from '@faker-js/faker';
 import axios from 'axios';
 import { UserContext } from '../../context/UserContext';
 
@@ -14,28 +14,47 @@ const api = axios.create({
 });
 
 const HomePage = () => {
-  const value = useContext(UserContext);
-  const {usersContext, currentPageContext, totalPages, healthStatusContext,
-     usersAddedOfflineContext, usersDeletedOfflineContext, usersUpdatedOfflineContext} = useContext(UserContext);
+  const {usersContext, currentPageContext, totalPagesContext, healthStatusContext,
+     usersAddedOfflineContext, usersDeletedOfflineContext, adminAccessTokenContext} = useContext(UserContext);
   const [users, setUsers] = usersContext;
   const [currentPage, setCurrentPage] = currentPageContext;
+  const [totalPages, setTotalPages] = totalPagesContext;
   const [healthStatus, setHealthStatus] = healthStatusContext;
   const [usersAddedOffline, setUsersAddedOffline] = usersAddedOfflineContext;
   const [usersDeletedOffline, setUsersDeletedOffline] = usersDeletedOfflineContext;
+  const [adminAccessToken, setAdminAccessToken] = adminAccessTokenContext;
   const [showModal, setShowModal] = useState(false);
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const storedToken = localStorage.getItem('adminAccessToken');
+    if (storedToken) {
+      setAdminAccessToken(storedToken);
+    }
+    console.log(adminAccessToken);
+  }, []);
 
   const handleShowModal = () => {
     setShowModal(true);
   };
 
   const handleAdd = async (newUser) => {
-    setUsers([...users, newUser]);
+    if (users.length % 4 === 0) {
+      setTotalPages(prevPages => prevPages + 1);
+      await setCurrentPage(prevPage => ({...prevPage, value: prevPage.value + 1, lastOperation: 'forward'}));
+      setPageInput(prevPage => prevPage + 1);
+    }
+    setUsers(prevUsers => [...prevUsers, newUser]);
     try {
-      const res = await api.post('/', newUser);
+      const res = await api.post('/', newUser, {
+        headers: {
+          'Authorization': `Bearer ${adminAccessToken}`
+        }
+      });
       const newID = res.data.id;
       newUser.id = newID;
+      console.log(users);
     }
     catch (err) {
       setUsersAddedOffline(prev => [...prev, newUser]);
@@ -44,9 +63,17 @@ const HomePage = () => {
   };
 
   const handleDelete = async (deletedUser) => {
+    if (users.length % 4 === 1 && currentPage.value > 0) {
+      setTotalPages(prevPages => prevPages - 1);
+      backwardPage();
+    }
     setUsers(users.filter((user) => user.id !== deletedUser.id));
     try {
-      await api.delete(`/${deletedUser.id}`);
+      await api.delete(`/${deletedUser.id}`, {
+        headers: {
+          'Authorization': `Bearer ${adminAccessToken}`
+        }
+      });
     }
     catch (err) {
       setUsersDeletedOffline(prev => [...prev, deletedUser]);
@@ -54,15 +81,7 @@ const HomePage = () => {
   }
 
   const sortUsers = () => {
-    const fetchData = async () => {
-      try {
-        const res = await api.get('/sorted');
-        setUsers(res.data);
-      } catch (err) {
-        console.log('Error fetching data: ', err);
-      }
-    };
-    fetchData();
+    window.alert('Sorting not available yet');
   };
 
   const closeModal = () => {
@@ -73,12 +92,12 @@ const HomePage = () => {
 
   const forwardPage = () => {
     setCurrentPage(prevPage => ({...prevPage, value: prevPage.value + 1, lastOperation: 'forward'}));
-    setPageInput(prevPage => prevPage + 1);
+    setPageInput(prevPage => parseInt(prevPage) + 1);
   };
 
   const backwardPage = () => {
     setCurrentPage(prevPage => ({...prevPage, value: prevPage.value - 1, lastOperation: 'backward'}));
-    setPageInput(prevPage => prevPage - 1);
+    setPageInput(prevPage => parseInt(prevPage) - 1);
   };
 
   const handlePageInputChanged = (e) => {
@@ -136,8 +155,8 @@ const HomePage = () => {
         </Row>
         <Row id="page-buttons">
           <Col>
-            <Button variant="primary" onClick={backwardPage} disabled={currentPage.value === 0}>&lt;</Button>
-            <Button variant="primary" onClick={forwardPage} disabled={currentPage.value === totalPages - 1}>&gt;</Button>
+            <Button variant="primary" onClick={backwardPage} disabled={currentPage.value === 0 || healthStatus === 'Unhealthy'}>&lt;</Button>
+            <Button variant="primary" onClick={forwardPage} disabled={currentPage.value === totalPages - 1 || healthStatus === 'Unhealthy'}>&gt;</Button>
           </Col>
         </Row>
       </Container>
