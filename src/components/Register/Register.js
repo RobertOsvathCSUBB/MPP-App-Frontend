@@ -43,7 +43,7 @@ const Register = () => {
 
         const fetchData = async () => {
             try {
-                const res = await axios.post('https://localhost:7182/register', {
+                const res = await axios.post('http://localhost:5194/register', {
                     email: email,
                     password: password
                 });
@@ -69,7 +69,7 @@ const Register = () => {
         <MDBInput wrapperClass='mb-4' label='Password' id='form2' type='password' onChange={handlePasswordChange}/>
         <MDBInput wrapperClass='mb-4' label='Confirm Password' id='form3' type='password' onChange={handleConfirmPasswordChange}/>
 
-        <MDBBtn className="mb-4" onClick={handleRegisterButtonDown}>Sign in</MDBBtn>
+        <MDBBtn className="mb-4" onClick={handleRegisterButtonDown}>Register</MDBBtn>
 
         </MDBContainer>
         </>

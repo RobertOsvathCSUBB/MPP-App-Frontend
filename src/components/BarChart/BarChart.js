@@ -15,7 +15,7 @@ const BarChart = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const res = await axios.get('https://localhost:7182/api/User/getUsersPerYear', {
+                const res = await axios.get('http://localhost:5149/api/User/getUsersPerYear', {
                     headers: {
                         'Authorization': 'Bearer ' + adminAccessToken,
                     }

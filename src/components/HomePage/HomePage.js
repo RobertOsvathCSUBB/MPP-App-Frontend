@@ -10,12 +10,12 @@ import axios from 'axios';
 import { UserContext } from '../../context/UserContext';
 
 const api = axios.create({
-  baseURL: 'https://localhost:7182/api/User'
+  baseURL: 'http://localhost:5194/api/User'
 });
 
 const HomePage = () => {
   const {usersContext, currentPageContext, totalPagesContext, healthStatusContext,
-     usersAddedOfflineContext, usersDeletedOfflineContext, adminAccessTokenContext} = useContext(UserContext);
+     usersAddedOfflineContext, usersDeletedOfflineContext, adminAccessTokenContext, emailNameContext, emailDomainContext} = useContext(UserContext);
   const [users, setUsers] = usersContext;
   const [currentPage, setCurrentPage] = currentPageContext;
   const [totalPages, setTotalPages] = totalPagesContext;
@@ -23,6 +23,8 @@ const HomePage = () => {
   const [usersAddedOffline, setUsersAddedOffline] = usersAddedOfflineContext;
   const [usersDeletedOffline, setUsersDeletedOffline] = usersDeletedOfflineContext;
   const [adminAccessToken, setAdminAccessToken] = adminAccessTokenContext;
+  const [emailName, setEmailName] = emailNameContext;
+  const [emailDomain, setEmailDomain] = emailDomainContext;
   const [showModal, setShowModal] = useState(false);
 
   const navigate = useNavigate();
@@ -47,7 +49,7 @@ const HomePage = () => {
     }
     setUsers(prevUsers => [...prevUsers, newUser]);
     try {
-      const res = await api.post('/', newUser, {
+      const res = await api.post(`?email=${emailName}&domain=${emailDomain}`, newUser, {
         headers: {
           'Authorization': `Bearer ${adminAccessToken}`
         }

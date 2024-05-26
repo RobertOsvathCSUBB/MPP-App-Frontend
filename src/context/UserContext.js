@@ -6,7 +6,7 @@ import { sign } from "chart.js/helpers";
 const PAGESIZE = 4;
 
 const api = axios.create({
-    baseURL: 'https://localhost:7182/api/User',
+    baseURL: 'http://localhost:5194/api/User',
 });
 
 const UserContext = createContext();
@@ -29,10 +29,12 @@ const DataProvider = ({ children }) => {
         value: 0,
         lastOperation: ''
     });
+    const [emailName, setEmailName] = useState('');
+    const [emailDomain, setEmailDomain] = useState('');
 
     const fetchData = async (page) => {
         try {
-            const res = await api.get(`/pages?page=${page}&pageSize=${PAGESIZE}`, {
+            const res = await api.get(`/pages?email=${emailName}&domain=${emailDomain}&page=${page}&pageSize=${PAGESIZE}`, {
                 headers: {
                     'Authorization': `Bearer ${adminAccessToken}`
                 }
@@ -49,7 +51,11 @@ const DataProvider = ({ children }) => {
             setUsers(currentUsersAux);
             const nextUsersAux = await fetchData(currentPage.value + 1);
             setNextUsers(nextUsersAux);
-            const totalUsers = (await api.get('/totalUsersCount', {headers: {'Authorization': `Bearer ${adminAccessToken}`}})).data;
+            const totalUsers = (await api.get(`/totalUsersCount?email=${emailName}&domain=${emailDomain}`, {
+                headers: {
+                    'Authorization': `Bearer ${adminAccessToken}`
+                }
+            })).data;
             setTotalPages(Math.ceil(totalUsers / PAGESIZE));
         };
         console.log('Mounting, ', signedIn)
@@ -208,7 +214,7 @@ const DataProvider = ({ children }) => {
     useEffect(() => {
         const checkHealth = async () => {
             try {
-                const res = await axios.get('https://localhost:7182/_health');
+                const res = await axios.get('http://localhost:5194/_health');
                 setHealthStatus(res.data.status);
                 setTriggerSync(true);
             } catch (err) {
@@ -232,6 +238,8 @@ const DataProvider = ({ children }) => {
             usersUpdatedOfflineContext: [usersUpdatedOffline, setUsersUpdatedOffline],
             signedInContext: [signedIn, setSignedIn],
             adminAccessTokenContext: [adminAccessToken, setAdminAccessToken],
+            emailNameContext: [emailName, setEmailName],
+            emailDomainContext: [emailDomain, setEmailDomain]
         }}>
             {children}
         </UserContext.Provider>

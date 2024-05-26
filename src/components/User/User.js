@@ -22,7 +22,7 @@ const User = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const res = await axios.get(`https://localhost:7182/api/User/${id}`, {
+                const res = await axios.get(`http://localhost:5194/api/User/${id}`, {
                     headers: {
                         'Authorization': 'Bearer ' + adminAccessToken,
                     }

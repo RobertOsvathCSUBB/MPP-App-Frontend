@@ -13,9 +13,11 @@ import { useNavigate } from 'react-router-dom';
 import { UserContext } from '../../context/UserContext';
 
 const Login = () => {
-    const {signedInContext, adminAccessTokenContext} = useContext(UserContext);
+    const {signedInContext, adminAccessTokenContext, emailNameContext, emailDomainContext} = useContext(UserContext);
     const [signedIn, setSignedIn] = signedInContext;
     const [adminAccessToken, setAdminAccessToken] = adminAccessTokenContext;
+    const [emailName, setEmailName] = emailNameContext;
+    const [emailDomain, setEmailDomain] = emailDomainContext;
     const [email, setEmail] = useState(() => {
         const storedEmail = localStorage.getItem('email');
         return storedEmail ? storedEmail : '';
@@ -44,13 +46,15 @@ const Login = () => {
         console.log('here');
         const fetchData = async () => {
             try {
-                const res = await axios.post('https://localhost:7182/login', {
+                const res = await axios.post('http://localhost:5194/login', {
                     email: email,
                     password: password,
                     twoFactorCode: "",
                     twoFactorRecoveryCode: ""
                 });
                 setAdminAccessToken(res.data.accessToken);
+                setEmailName(email.split('@')[0]);
+                setEmailDomain(email.split('@')[1].split('.')[0]);
                 setSignedIn(true);
                 navigate('/home');
             }
